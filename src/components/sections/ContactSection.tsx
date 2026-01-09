@@ -39,9 +39,9 @@ const ContactSection = () => {
                     Adresse
                   </h3>
                   <p className="text-muted-foreground">
-                    Temple MEEC Centre
+                    Église MEEC Centre
                     <br />
-                    Douala, Cameroun
+                    Yaoundé, Cameroun
                   </p>
                 </div>
               </div>
