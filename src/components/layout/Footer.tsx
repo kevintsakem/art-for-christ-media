@@ -1,4 +1,5 @@
 import { Heart } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -10,11 +11,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-gold rounded-full flex items-center justify-center">
-                <span className="text-primary-foreground font-display font-bold text-xl">
-                  A
-                </span>
-              </div>
+              <img src={logo} alt="Logo Art pour Christ" className="w-10 h-10 rounded-full object-cover" />
               <div>
                 <h3 className="font-display font-bold text-lg">
                   Art pour Christ
