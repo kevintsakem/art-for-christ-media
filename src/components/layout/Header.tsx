@@ -95,17 +95,17 @@ const Header = () => {
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? (
-              <X className="w-6 h-6 text-foreground" />
+              <X className={`w-6 h-6 [filter:_drop-shadow(0_2px_4px_rgba(0,0,0,0.5))] ${isScrolled ? 'text-foreground' : 'text-white'}`} />
             ) : (
-              <Menu className="w-6 h-6 text-foreground" />
+              <Menu className={`w-6 h-6 [filter:_drop-shadow(0_2px_4px_rgba(0,0,0,0.5))] ${isScrolled ? 'text-foreground' : 'text-white'}`} />
             )}
           </button>
         </div>
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <nav className="md:hidden py-4 border-t border-border animate-slide-up">
-            <div className="flex flex-col gap-4">
+          <nav className="md:hidden py-4 border-t border-white/20 animate-slide-up bg-black/60 backdrop-blur-md rounded-b-lg">
+            <div className="flex flex-col gap-4 px-2">
               {navLinks.map((link) => (
                 <a
                   key={link.href}
@@ -114,7 +114,7 @@ const Header = () => {
                     e.preventDefault();
                     scrollToSection(link.href);
                   }}
-                  className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2"
+                  className="text-sm font-medium text-white hover:text-primary transition-colors py-2 [text-shadow:_0_1px_4px_rgba(0,0,0,0.5)]"
                 >
                   {link.label}
                 </a>
