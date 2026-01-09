@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.png";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -49,9 +50,7 @@ const Header = () => {
             }}
             className="flex items-center gap-3"
           >
-            <div className="w-10 h-10 bg-gradient-gold rounded-full flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-xl">A</span>
-            </div>
+            <img src={logo} alt="Logo Art pour Christ" className="w-10 h-10 rounded-full object-cover" />
             <div className="flex flex-col">
               <span className={`font-display font-bold text-lg leading-tight [text-shadow:_0_2px_8px_rgba(0,0,0,0.5)] ${isScrolled ? 'text-foreground' : 'text-white'}`}>
                 Art pour Christ
