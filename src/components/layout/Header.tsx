@@ -53,10 +53,10 @@ const Header = () => {
               <span className="text-primary-foreground font-display font-bold text-xl">A</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-display font-bold text-lg text-foreground leading-tight">
+              <span className={`font-display font-bold text-lg leading-tight [text-shadow:_0_2px_8px_rgba(0,0,0,0.5)] ${isScrolled ? 'text-foreground' : 'text-white'}`}>
                 Art pour Christ
               </span>
-              <span className="text-xs text-muted-foreground">MEEC Centre</span>
+              <span className={`text-xs [text-shadow:_0_1px_4px_rgba(0,0,0,0.5)] ${isScrolled ? 'text-muted-foreground' : 'text-white/80'}`}>MEEC Centre</span>
             </div>
           </a>
 
@@ -70,7 +70,11 @@ const Header = () => {
                   e.preventDefault();
                   scrollToSection(link.href);
                 }}
-                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors duration-200"
+                className={`text-sm font-medium transition-colors duration-200 [text-shadow:_0_1px_4px_rgba(0,0,0,0.5)] ${
+                  isScrolled 
+                    ? 'text-foreground/80 hover:text-primary' 
+                    : 'text-white hover:text-primary'
+                }`}
               >
                 {link.label}
               </a>
