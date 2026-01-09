@@ -80,8 +80,8 @@ const Footer = () => {
           <div>
             <h4 className="font-display font-semibold mb-4">Contact</h4>
             <ul className="space-y-2 text-sm text-secondary-foreground/80">
-              <li>Temple MEEC Centre</li>
-              <li>Douala, Cameroun</li>
+              <li>Église MEEC Centre</li>
+              <li>Yaoundé, Cameroun</li>
               <li>artpourchrist@meec-centre.org</li>
             </ul>
           </div>
