@@ -37,9 +37,9 @@ const HeroSection = () => {
           </div>
 
           {/* Main Heading */}
-          <h1 className="font-display text-5xl md:text-7xl font-bold text-foreground leading-tight">
+          <h1 className="font-display text-5xl md:text-7xl font-bold text-white leading-tight drop-shadow-lg">
             Glorifier Dieu{" "}
-            <span className="text-gradient-gold">par l'Art</span>
+            <span className="italic">par l'Art</span>
           </h1>
 
           {/* Subtitle */}
