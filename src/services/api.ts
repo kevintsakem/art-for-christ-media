@@ -7,10 +7,9 @@ export interface Photo {
   title: string;
   description?: string;
   url: string;
-  thumbnail?: string;
+  thumbnail?: string; // derived from url on the frontend
   category?: string;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface Video {
@@ -20,9 +19,7 @@ export interface Video {
   url: string;
   thumbnail: string;
   category?: string;
-  duration?: string;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface Announcement {
@@ -35,8 +32,8 @@ export interface Announcement {
   category: string;
   featured: boolean;
   imageUrl?: string;
+  linkUrl?: string;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface User {
@@ -51,9 +48,11 @@ export interface LoginCredentials {
   password: string;
 }
 
+// Matches the backend LoginResponse: { token, email, role }
 export interface AuthResponse {
-  user: User;
   token: string;
+  email: string;
+  role: string;
 }
 
 // Utilitaire pour les requêtes
@@ -96,7 +95,12 @@ export const authApi = {
   },
 
   getCurrentUser: () =>
-    request<User>('/auth/me'),
+    request<{ email: string; role: string }>('/auth/me').then(res => ({
+      id: res.email,
+      email: res.email,
+      name: res.email.split('@')[0],
+      role: res.role.toLowerCase() as 'admin' | 'editor',
+    })),
 
   getStoredUser: (): User | null => {
     const user = localStorage.getItem('user');
@@ -124,7 +128,13 @@ export const photosApi = {
         Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
       },
       body: data,
-    }).then(res => res.json()),
+    }).then(async res => {
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: 'Erreur upload photo' }));
+        throw new Error(err.message || `Erreur ${res.status}`);
+      }
+      return res.json();
+    }),
   
   update: (id: string, data: Partial<Photo>) =>
     request<Photo>(`/photos/${id}`, {
@@ -149,7 +159,13 @@ export const videosApi = {
         Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
       },
       body: data,
-    }).then(res => res.json()),
+    }).then(async res => {
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: 'Erreur upload vidéo' }));
+        throw new Error(err.message || `Erreur ${res.status}`);
+      }
+      return res.json();
+    }),
   
   update: (id: string, data: Partial<Video>) =>
     request<Video>(`/videos/${id}`, {
@@ -164,21 +180,39 @@ export const videosApi = {
 // Announcements API
 export const announcementsApi = {
   getAll: () => request<Announcement[]>('/announcements'),
-  
+
   getById: (id: string) => request<Announcement>(`/announcements/${id}`),
-  
-  create: (data: Omit<Announcement, 'id' | 'createdAt' | 'updatedAt'>) =>
-    request<Announcement>('/announcements', {
+
+  create: (data: FormData) =>
+    fetch(`${API_BASE_URL}/announcements`, {
       method: 'POST',
-      body: JSON.stringify(data),
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+      },
+      body: data,
+    }).then(async (res) => {
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: "Erreur création annonce" }));
+        throw new Error(err.message || `Erreur ${res.status}`);
+      }
+      return res.json() as Promise<Announcement>;
     }),
-  
-  update: (id: string, data: Partial<Announcement>) =>
-    request<Announcement>(`/announcements/${id}`, {
+
+  update: (id: string, data: FormData) =>
+    fetch(`${API_BASE_URL}/announcements/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(data),
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+      },
+      body: data,
+    }).then(async (res) => {
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: "Erreur modification annonce" }));
+        throw new Error(err.message || `Erreur ${res.status}`);
+      }
+      return res.json() as Promise<Announcement>;
     }),
-  
+
   delete: (id: string) =>
     request<void>(`/announcements/${id}`, { method: 'DELETE' }),
 };

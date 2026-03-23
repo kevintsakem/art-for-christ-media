@@ -3,6 +3,13 @@ import { Play, ChevronDown } from "lucide-react";
 import heroImage from "@/assets/hero-worship.jpg";
 
 const HeroSection = () => {
+  const scrollToAnnouncements = () => {
+    const element = document.querySelector("#annonces");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const scrollToGallery = () => {
     const element = document.querySelector("#galerie");
     if (element) {
@@ -22,7 +29,7 @@ const HeroSection = () => {
           alt="Worship and dance performance"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-black/55" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-background" />
       </div>
 
@@ -52,9 +59,9 @@ const HeroSection = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <Button variant="hero" onClick={scrollToGallery}>
+            <Button variant="hero" onClick={scrollToAnnouncements}>
               <Play className="w-5 h-5" />
-              Découvrir nos prestations
+              Voir les annonces
             </Button>
             <Button variant="heroOutline" onClick={scrollToGallery}>
               Voir la galerie
@@ -65,11 +72,11 @@ const HeroSection = () => {
         {/* Scroll Indicator */}
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-float">
           <button
-            onClick={scrollToGallery}
+            onClick={scrollToAnnouncements}
             className="flex flex-col items-center gap-2 text-white/80 hover:text-primary transition-colors"
-            aria-label="Scroll to gallery"
+            aria-label="Scroll to announcements"
           >
-            <span className="text-sm font-medium [text-shadow:_0_2px_8px_rgba(0,0,0,0.6)]">Découvrir</span>
+            <span className="text-sm font-medium [text-shadow:_0_2px_8px_rgba(0,0,0,0.6)]">Annonces</span>
             <ChevronDown className="w-6 h-6" />
           </button>
         </div>

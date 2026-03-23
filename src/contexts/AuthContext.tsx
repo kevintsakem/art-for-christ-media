@@ -37,8 +37,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (credentials: LoginCredentials) => {
     const response = await authApi.login(credentials);
-    authApi.setAuth(response.token, response.user);
-    setUser(response.user);
+    // Backend returns { token, email, role } — construct a User object
+    const user: User = {
+      id: response.email,
+      email: response.email,
+      name: response.email.split('@')[0],
+      role: response.role.toLowerCase() as 'admin' | 'editor',
+    };
+    authApi.setAuth(response.token, user);
+    setUser(user);
   };
 
   const logout = () => {

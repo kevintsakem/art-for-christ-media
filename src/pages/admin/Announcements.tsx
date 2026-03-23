@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,6 +38,9 @@ import {
   Clock,
   MapPin,
   Star,
+  Image as ImageIcon,
+  Link,
+  X,
 } from 'lucide-react';
 
 export default function AdminAnnouncements() {
@@ -56,6 +59,10 @@ export default function AdminAnnouncements() {
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState('');
   const [featured, setFeatured] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadAnnouncements();
@@ -65,7 +72,7 @@ export default function AdminAnnouncements() {
     try {
       const data = await announcementsApi.getAll();
       setAnnouncements(data);
-    } catch (error) {
+    } catch {
       toast({
         title: 'Erreur',
         description: 'Impossible de charger les annonces',
@@ -85,7 +92,11 @@ export default function AdminAnnouncements() {
     setLocation('');
     setCategory('');
     setFeatured(false);
+    setLinkUrl('');
+    setImageFile(null);
+    setImagePreview(null);
     setEditingAnnouncement(null);
+    if (imageInputRef.current) imageInputRef.current.value = '';
   };
 
   const openEditDialog = (announcement: Announcement) => {
@@ -97,7 +108,23 @@ export default function AdminAnnouncements() {
     setLocation(announcement.location || '');
     setCategory(announcement.category);
     setFeatured(announcement.featured);
+    setLinkUrl(announcement.linkUrl || '');
+    setImageFile(null);
+    setImagePreview(announcement.imageUrl || null);
     setIsDialogOpen(true);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (imageInputRef.current) imageInputRef.current.value = '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,21 +132,22 @@ export default function AdminAnnouncements() {
     setIsSubmitting(true);
 
     try {
-      const data = {
-        title,
-        description,
-        date,
-        time: time || undefined,
-        location: location || undefined,
-        category,
-        featured,
-      };
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('date', date);
+      if (time) formData.append('time', time);
+      if (location) formData.append('location', location);
+      formData.append('category', category);
+      formData.append('featured', String(featured));
+      if (linkUrl) formData.append('linkUrl', linkUrl);
+      if (imageFile) formData.append('image', imageFile);
 
       if (editingAnnouncement) {
-        await announcementsApi.update(editingAnnouncement.id, data);
+        await announcementsApi.update(editingAnnouncement.id, formData);
         toast({ title: 'Succès', description: 'Annonce modifiée avec succès' });
       } else {
-        await announcementsApi.create(data);
+        await announcementsApi.create(formData);
         toast({ title: 'Succès', description: 'Annonce créée avec succès' });
       }
 
@@ -142,7 +170,7 @@ export default function AdminAnnouncements() {
       await announcementsApi.delete(id);
       toast({ title: 'Succès', description: 'Annonce supprimée' });
       loadAnnouncements();
-    } catch (error) {
+    } catch {
       toast({
         title: 'Erreur',
         description: "Impossible de supprimer l'annonce",
@@ -245,6 +273,64 @@ export default function AdminAnnouncements() {
                     required
                   />
                 </div>
+
+                {/* Image */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4" />
+                    Photo de l'annonce
+                  </Label>
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Aperçu"
+                        className="w-full h-36 object-cover rounded-lg border"
+                      />
+                      <button
+                        type="button"
+                        onClick={clearImage}
+                        className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                      onClick={() => imageInputRef.current?.click()}
+                    >
+                      <ImageIcon className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        Cliquer pour choisir une image
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WebP</p>
+                    </div>
+                  )}
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                </div>
+
+                {/* Lien */}
+                <div className="space-y-2">
+                  <Label htmlFor="linkUrl" className="flex items-center gap-2">
+                    <Link className="w-4 h-4" />
+                    Lien externe
+                  </Label>
+                  <Input
+                    id="linkUrl"
+                    type="url"
+                    value={linkUrl}
+                    onChange={(e) => setLinkUrl(e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
+
                 <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                   <div className="flex items-center gap-2">
                     <Star className="w-4 h-4 text-primary" />
@@ -260,9 +346,7 @@ export default function AdminAnnouncements() {
                 </div>
                 <DialogFooter>
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : null}
+                    {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     {editingAnnouncement ? 'Enregistrer' : 'Créer'}
                   </Button>
                 </DialogFooter>
@@ -296,8 +380,16 @@ export default function AdminAnnouncements() {
                 }`}
               >
                 <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                  <div className="flex items-start justify-between gap-4">
+                    {/* Miniature image si disponible */}
+                    {announcement.imageUrl && (
+                      <img
+                        src={announcement.imageUrl}
+                        alt={announcement.title}
+                        className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         {announcement.featured && (
                           <Star className="w-4 h-4 text-primary fill-primary" />
@@ -305,13 +397,19 @@ export default function AdminAnnouncements() {
                         <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
                           {announcement.category}
                         </span>
+                        {announcement.linkUrl && (
+                          <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded flex items-center gap-1">
+                            <Link className="w-3 h-3" />
+                            Lien
+                          </span>
+                        )}
                       </div>
                       <CardTitle className="text-lg">{announcement.title}</CardTitle>
-                      <CardDescription className="mt-1">
+                      <CardDescription className="mt-1 line-clamp-2">
                         {announcement.description}
                       </CardDescription>
                     </div>
-                    <div className="flex gap-2 ml-4">
+                    <div className="flex gap-2 flex-shrink-0">
                       <Button
                         size="icon"
                         variant="outline"

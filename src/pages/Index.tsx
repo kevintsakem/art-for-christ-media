@@ -5,15 +5,17 @@ import AnnouncementsSection from "@/components/sections/AnnouncementsSection";
 import AboutSection from "@/components/sections/AboutSection";
 import ContactSection from "@/components/sections/ContactSection";
 import Footer from "@/components/layout/Footer";
+import RecentAnnouncementPopup from "@/components/sections/RecentAnnouncementPopup";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
+      <RecentAnnouncementPopup />
       <Header />
       <main>
         <HeroSection />
-        <GallerySection />
         <AnnouncementsSection />
+        <GallerySection />
         <AboutSection />
         <ContactSection />
       </main>

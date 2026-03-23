@@ -104,7 +104,7 @@ export default function AdminPhotos() {
         formData.append('title', title);
         formData.append('description', description);
         formData.append('category', category);
-        formData.append('image', file);
+        formData.append('photo', file);
         await photosApi.create(formData);
         toast({ title: 'Succès', description: 'Photo ajoutée avec succès' });
       }

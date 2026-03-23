@@ -1,60 +1,75 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, Image as ImageIcon, X } from "lucide-react";
+import { Play, Image as ImageIcon, X, Loader2, ChevronDown } from "lucide-react";
+import { photosApi, videosApi, Photo, Video } from "@/services/api";
 
-// Placeholder data - will be replaced with real data from database
-const galleryItems = [
-  {
-    id: 1,
-    type: "video",
-    title: "Sketch de Noël 2024",
-    thumbnail: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80",
-    videoUrl: "#",
-    date: "25 Déc 2024",
-  },
-  {
-    id: 2,
-    type: "image",
-    title: "Danse de louange",
-    thumbnail: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&q=80",
-    date: "15 Nov 2024",
-  },
-  {
-    id: 3,
-    type: "video",
-    title: "Pâques - La Résurrection",
-    thumbnail: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80",
-    videoUrl: "#",
-    date: "31 Mar 2024",
-  },
-  {
-    id: 4,
-    type: "image",
-    title: "Répétition générale",
-    thumbnail: "https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?w=600&q=80",
-    date: "10 Mar 2024",
-  },
-  {
-    id: 5,
-    type: "image",
-    title: "Journée des talents",
-    thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80",
-    date: "5 Fév 2024",
-  },
-  {
-    id: 6,
-    type: "video",
-    title: "Nouvel An - Adoration",
-    thumbnail: "https://images.unsplash.com/photo-1429514513361-8fa32282fd5f?w=600&q=80",
-    videoUrl: "#",
-    date: "1 Jan 2024",
-  },
-];
+interface GalleryItem {
+  id: string;
+  type: "video" | "image";
+  title: string;
+  thumbnail: string;
+  url: string;
+  date: string;
+  description?: string;
+}
 
 const GallerySection = () => {
   const [filter, setFilter] = useState<"all" | "video" | "image">("all");
-  const [selectedItem, setSelectedItem] = useState<typeof galleryItems[0] | null>(null);
+  const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
+
+  useEffect(() => {
+    const loadGallery = async () => {
+      try {
+        const [photos, videos] = await Promise.all([
+          photosApi.getAll().catch(() => [] as Photo[]),
+          videosApi.getAll().catch(() => [] as Video[]),
+        ]);
+
+        const photoItems: GalleryItem[] = photos.map((p) => ({
+          id: p.id,
+          type: "image",
+          title: p.title,
+          thumbnail: p.url,
+          url: p.url,
+          date: new Date(p.createdAt).toLocaleDateString("fr-FR", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          }),
+        }));
+
+        const videoItems: GalleryItem[] = videos.map((v) => ({
+          id: v.id,
+          type: "video",
+          title: v.title,
+          thumbnail: v.thumbnail,
+          url: v.url,
+          description: v.description,
+          date: new Date(v.createdAt).toLocaleDateString("fr-FR", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          }),
+        }));
+
+        // Merge and sort by date descending
+        const merged = [...photoItems, ...videoItems].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+        setGalleryItems(merged);
+      } catch {
+        setGalleryItems([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadGallery();
+  }, []);
 
   const filteredItems = galleryItems.filter(
     (item) => filter === "all" || item.type === filter
@@ -101,12 +116,25 @@ const GallerySection = () => {
         </div>
 
         {/* Gallery Grid */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          </div>
+        ) : filteredItems.length === 0 ? (
+          <div className="text-center py-16 text-muted-foreground">
+            <ImageIcon className="w-12 h-12 mx-auto mb-4 opacity-40" />
+            <p>Aucun contenu disponible pour le moment.</p>
+          </div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredItems.map((item, index) => (
             <Card
               key={item.id}
               className="group overflow-hidden cursor-pointer shadow-card hover:shadow-elevated transition-all duration-300 hover:-translate-y-1"
-              onClick={() => setSelectedItem(item)}
+              onClick={() => {
+                setSelectedItem(item);
+                setIsDescriptionOpen(false);
+              }}
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="relative aspect-video overflow-hidden">
@@ -137,6 +165,7 @@ const GallerySection = () => {
             </Card>
           ))}
         </div>
+        )}
 
         {/* View More Button */}
         <div className="text-center mt-12">
@@ -162,16 +191,54 @@ const GallerySection = () => {
             className="max-w-4xl w-full bg-card rounded-lg overflow-hidden animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
-            <img
-              src={selectedItem.thumbnail}
-              alt={selectedItem.title}
-              className="w-full aspect-video object-cover"
-            />
+            {selectedItem.type === "video" ? (
+              <video
+                src={selectedItem.url}
+                poster={selectedItem.thumbnail}
+                controls
+                className="w-full aspect-video object-cover"
+              />
+            ) : (
+              <img
+                src={selectedItem.url}
+                alt={selectedItem.title}
+                className="w-full aspect-video object-cover"
+              />
+            )}
             <div className="p-6">
               <p className="text-sm text-primary">{selectedItem.date}</p>
               <h3 className="font-display text-2xl font-bold text-foreground mt-1">
                 {selectedItem.title}
               </h3>
+
+              {selectedItem.type === "video" && selectedItem.description && (
+                <div className="mt-4 border-t pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsDescriptionOpen((prev) => !prev)}
+                    className="w-full flex items-center justify-between text-left text-foreground hover:text-primary transition-colors"
+                  >
+                    <span className="font-medium">Description</span>
+                    <ChevronDown
+                      className={`w-5 h-5 transition-transform duration-300 ${
+                        isDescriptionOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  <div
+                    className={`grid transition-all duration-300 ease-in-out ${
+                      isDescriptionOpen ? "grid-rows-[1fr] mt-3" : "grid-rows-[0fr]"
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <p className="text-muted-foreground leading-relaxed">
+                        {selectedItem.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

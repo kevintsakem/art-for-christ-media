@@ -96,15 +96,6 @@ export default function AdminLogin() {
               )}
             </Button>
           </form>
-          
-          <div className="mt-6 p-4 bg-muted rounded-lg">
-            <p className="text-xs text-muted-foreground text-center">
-              ⚠️ Configurez votre backend à l'URL:<br />
-              <code className="text-xs bg-background px-2 py-1 rounded">
-                VITE_API_URL=http://votre-api.com/api
-              </code>
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>
